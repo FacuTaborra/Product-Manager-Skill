@@ -7,7 +7,9 @@
       "Bash(cat ~/.bashrc 2>/dev/null || echo \"\\(no existe\\)\")",
       "Read(//c/Users/facun/**)",
       "Bash(python3 ~/.claude/skills/pm/pm.py create-team --help)",
-      "Bash(./install.sh)"
+      "Bash(./install.sh)",
+      "Bash(python3 ~/.claude/skills/pm/pm.py list-teams)",
+      "Bash(mypy)"
     ],
     "additionalDirectories": [
       "C:\\Users\\facun"

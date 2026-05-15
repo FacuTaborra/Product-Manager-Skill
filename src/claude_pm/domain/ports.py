@@ -23,6 +23,10 @@ class IssueProvider(Protocol):
         """List all teams the authenticated user belongs to."""
         ...
 
+    def create_team(self, name: str) -> Team:
+        """Create a new team in the workspace."""
+        ...
+
     def find_projects(self, name_query: str) -> list[Project]:
         """Find projects whose name matches the query (case-insensitive substring)."""
         ...
