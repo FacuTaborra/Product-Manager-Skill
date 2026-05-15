@@ -38,6 +38,14 @@ def run_list_labels(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def run_create_team(args: argparse.Namespace) -> int:
+    config = Config.load(args.repo_name)
+    provider = build_provider(config)
+    team = provider.create_team(args.name)
+    print_json({"team": {"id": team.id, "name": team.name, "key": team.key}})
+    return EXIT_OK
+
+
 def run_resolve_user(args: argparse.Namespace) -> int:
     config = Config.load(args.repo_name)
     provider = build_provider(config)

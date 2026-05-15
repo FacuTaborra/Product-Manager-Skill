@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 ~/.claude/skills/pm/pm.py doctor)",
+      "PowerShell($PROFILE)",
+      "Read(//c/Users/facun/OneDrive/Documentos/WindowsPowerShell/**)",
+      "Bash(cat ~/.bashrc 2>/dev/null || echo \"\\(no existe\\)\")",
+      "Read(//c/Users/facun/**)",
+      "Bash(python3 ~/.claude/skills/pm/pm.py create-team --help)",
+      "Bash(./install.sh)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\facun"
+    ]
+  }
+}

@@ -44,6 +44,11 @@ def build_parser() -> argparse.ArgumentParser:
     _add_repo_arg(p_teams)
     p_teams.set_defaults(func=lists.run_list_teams)
 
+    p_create_team = sub.add_parser("create-team", help="Create a new team in the workspace.")
+    _add_repo_arg(p_create_team)
+    p_create_team.add_argument("name", help="Name of the new team.")
+    p_create_team.set_defaults(func=lists.run_create_team)
+
     p_states = sub.add_parser("list-states", help="List workflow states for the current team.")
     _add_repo_arg(p_states)
     p_states.set_defaults(func=lists.run_list_states)

@@ -52,6 +52,18 @@ class LinearProvider:
         nodes = (data.get("teams") or {}).get("nodes") or []
         return [Team(id=n["id"], name=n["name"], key=n["key"]) for n in nodes]
 
+    def create_team(self, name: str) -> Team:
+        data = self._query(
+            "mutation($input: TeamCreateInput!) { teamCreate(input: $input) "
+            "{ success team { id name key } } }",
+            {"input": {"name": name}},
+        )
+        result = data.get("teamCreate") or {}
+        if not result.get("success"):
+            raise ProviderError(f"Team creation failed: {result}")
+        team = result["team"]
+        return Team(id=team["id"], name=team["name"], key=team["key"])
+
     def find_projects(self, name_query: str) -> list[Project]:
         data = self._query(
             "query($q: String!) { projects(filter: {name: {containsIgnoreCase: $q}}) "
