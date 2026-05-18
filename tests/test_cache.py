@@ -109,13 +109,15 @@ class TestJsonFileCacheRepository:
     def test_load_backward_compat_single_project(self, tmp_path: Path) -> None:
         path = tmp_path / "cache.json"
         path.write_text(
-            json.dumps({
-                "linearTeamId": "t1",
-                "linearProjectId": "p1",
-                "linearProjectName": "Proj",
-                "stateIds": {"Todo": "s1"},
-                "lastRefresh": datetime.now(timezone.utc).isoformat(),
-            }),
+            json.dumps(
+                {
+                    "linearTeamId": "t1",
+                    "linearProjectId": "p1",
+                    "linearProjectName": "Proj",
+                    "stateIds": {"Todo": "s1"},
+                    "lastRefresh": datetime.now(timezone.utc).isoformat(),
+                }
+            ),
             encoding="utf-8",
         )
         repo = JsonFileCacheRepository(path)

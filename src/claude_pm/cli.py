@@ -103,7 +103,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_get = sub.add_parser("get-issue", help="Fetch a single issue by ID (includes description).")
     _add_repo_arg(p_get)
-    p_get.add_argument("--id", required=True, help="Issue identifier (e.g. FAC-12 or ClickUp task ID).")
+    p_get.add_argument(
+        "--id", required=True, help="Issue identifier (e.g. FAC-12 or ClickUp task ID)."
+    )
     p_get.set_defaults(func=get_issue.run)
 
     p_update = sub.add_parser("update-issue", help="Update an existing issue.")
@@ -180,7 +182,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_create_doc.set_defaults(func=docs.run_create_doc)
 
-    p_update_doc = sub.add_parser("update-doc", help="Update title and/or page content of a ClickUp Doc.")
+    p_update_doc = sub.add_parser(
+        "update-doc", help="Update title and/or page content of a ClickUp Doc."
+    )
     _add_repo_arg(p_update_doc)
     p_update_doc.add_argument("--doc-id", required=True, help="ClickUp Doc ID.")
     p_update_doc.add_argument("--title", default=None, help="New title for the doc.")

@@ -23,13 +23,15 @@ def run_create_doc(args: argparse.Namespace) -> int:
             raise PMError(f"Content file not found: {path}")
         content = path.read_text(encoding="utf-8")
     doc = provider.create_doc(args.title, content)
-    print_json({
-        "ok": True,
-        "id": doc.id,
-        "title": doc.title,
-        "url": doc.url,
-        "note": "Doc created at workspace level (List association not supported by ClickUp API).",
-    })
+    print_json(
+        {
+            "ok": True,
+            "id": doc.id,
+            "title": doc.title,
+            "url": doc.url,
+            "note": "Doc created at workspace level (List association not supported by ClickUp API).",
+        }
+    )
     return EXIT_OK
 
 

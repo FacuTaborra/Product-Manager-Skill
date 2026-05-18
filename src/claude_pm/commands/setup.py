@@ -23,16 +23,18 @@ def run(args: argparse.Namespace) -> int:
     )
     cache = SetupService(provider, cache_repo, config).ensure(options)
 
-    print_json({
-        "ok": True,
-        "cache": {
-            "team_id": cache.team_id,
-            "project_id": cache.project_id,
-            "project_name": cache.project_name,
-            "projects": list(cache.projects),
-            "state_ids": cache.state_ids,
-            "last_refresh": cache.last_refresh,
-        },
-        "cache_path": str(cache_repo.path),
-    })
+    print_json(
+        {
+            "ok": True,
+            "cache": {
+                "team_id": cache.team_id,
+                "project_id": cache.project_id,
+                "project_name": cache.project_name,
+                "projects": list(cache.projects),
+                "state_ids": cache.state_ids,
+                "last_refresh": cache.last_refresh,
+            },
+            "cache_path": str(cache_repo.path),
+        }
+    )
     return EXIT_OK

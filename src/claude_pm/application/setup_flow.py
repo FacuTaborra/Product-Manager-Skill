@@ -30,7 +30,9 @@ class SetupService:
         `create_project_if_missing=True`) or raise NeedsChoice asking the user.
     """
 
-    def __init__(self, provider: IssueProvider, cache_repo: CacheRepository, config: Config) -> None:
+    def __init__(
+        self, provider: IssueProvider, cache_repo: CacheRepository, config: Config
+    ) -> None:
         self.provider = provider
         self.cache_repo = cache_repo
         self.config = config
@@ -115,9 +117,7 @@ class SetupService:
         )
 
     def _resolve_project(self, team_id: str, opts: SetupOptions, cache: Cache) -> Project:
-        override = (
-            opts.project_id_override or self.config.project_id_override or cache.project_id
-        )
+        override = opts.project_id_override or self.config.project_id_override or cache.project_id
         if override:
             return Project(id=override, name=cache.project_name or self.config.repo_name)
 

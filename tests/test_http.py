@@ -14,7 +14,9 @@ from src.claude_pm.infrastructure.providers._http import HttpClient
 
 
 def _make_client() -> HttpClient:
-    return HttpClient(url="https://example.com/api", headers={"Authorization": "test"}, max_retries=1)
+    return HttpClient(
+        url="https://example.com/api", headers={"Authorization": "test"}, max_retries=1
+    )
 
 
 def _mock_response(data: dict, status: int = 200) -> MagicMock:
@@ -45,12 +47,18 @@ class TestGetJson:
 
     def test_401_raises_provider_error_immediately(self) -> None:
         client = _make_client()
-        with patch("urllib.request.urlopen", side_effect=_http_error(401)), pytest.raises(ProviderError, match="Authentication rejected"):
+        with (
+            patch("urllib.request.urlopen", side_effect=_http_error(401)),
+            pytest.raises(ProviderError, match="Authentication rejected"),
+        ):
             client.get_json("https://example.com/api")
 
     def test_403_raises_provider_error_immediately(self) -> None:
         client = _make_client()
-        with patch("urllib.request.urlopen", side_effect=_http_error(403)), pytest.raises(ProviderError, match="Authentication rejected"):
+        with (
+            patch("urllib.request.urlopen", side_effect=_http_error(403)),
+            pytest.raises(ProviderError, match="Authentication rejected"),
+        ):
             client.get_json("https://example.com/api")
 
     def test_500_retries_then_succeeds(self) -> None:
@@ -74,13 +82,21 @@ class TestGetJson:
 
     def test_500_twice_raises_provider_error(self) -> None:
         client = _make_client()
-        with patch("urllib.request.urlopen", side_effect=_http_error(500)), patch("time.sleep"), pytest.raises(ProviderError, match="HTTP 500"):
+        with (
+            patch("urllib.request.urlopen", side_effect=_http_error(500)),
+            patch("time.sleep"),
+            pytest.raises(ProviderError, match="HTTP 500"),
+        ):
             client.get_json("https://example.com/api")
 
     def test_url_error_retries_then_raises(self) -> None:
         client = _make_client()
         err = urllib.error.URLError("connection refused")
-        with patch("urllib.request.urlopen", side_effect=err), patch("time.sleep"), pytest.raises(ProviderError, match="Network error"):
+        with (
+            patch("urllib.request.urlopen", side_effect=err),
+            patch("time.sleep"),
+            pytest.raises(ProviderError, match="Network error"),
+        ):
             client.get_json("https://example.com/api")
 
 
@@ -97,5 +113,8 @@ class TestPostJson:
         resp.read.return_value = json.dumps([1, 2, 3]).encode()
         resp.__enter__ = lambda s: s
         resp.__exit__ = MagicMock(return_value=False)
-        with patch("urllib.request.urlopen", return_value=resp), pytest.raises(ProviderError, match="Unexpected response shape"):
+        with (
+            patch("urllib.request.urlopen", return_value=resp),
+            pytest.raises(ProviderError, match="Unexpected response shape"),
+        ):
             client.post_json({"title": "Test"})

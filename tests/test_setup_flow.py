@@ -17,6 +17,7 @@ from src.claude_pm.infrastructure.cache import Cache, InMemoryCacheRepository
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_config(repo_name: str = "my-repo", pm_file: PmFileConfig | None = None) -> Config:
     return Config(
         pak_file=MagicMock(),
@@ -51,6 +52,7 @@ def _make_provider(
 
 def _fresh_cache() -> Cache:
     from datetime import datetime, timezone
+
     return Cache(
         team_id="team-1",
         project_id="proj-1",
@@ -64,6 +66,7 @@ def _fresh_cache() -> Cache:
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 class TestEnsureWithFreshCache:
     def test_fresh_complete_cache_skips_api(self) -> None:
@@ -102,10 +105,12 @@ class TestEnsureWithEmptyCache:
 
     def test_multiple_teams_raises_needs_choice(self) -> None:
         repo = InMemoryCacheRepository()
-        provider = _make_provider(teams=[
-            Team(id="t1", name="Team A", key="A"),
-            Team(id="t2", name="Team B", key="B"),
-        ])
+        provider = _make_provider(
+            teams=[
+                Team(id="t1", name="Team A", key="A"),
+                Team(id="t2", name="Team B", key="B"),
+            ]
+        )
         service = SetupService(provider, repo, _make_config())
 
         with pytest.raises(NeedsChoice, match="Multiple teams found"):
@@ -113,10 +118,12 @@ class TestEnsureWithEmptyCache:
 
     def test_team_id_override_is_used(self) -> None:
         repo = InMemoryCacheRepository()
-        provider = _make_provider(teams=[
-            Team(id="t1", name="Team A", key="A"),
-            Team(id="t2", name="Team B", key="B"),
-        ])
+        provider = _make_provider(
+            teams=[
+                Team(id="t1", name="Team A", key="A"),
+                Team(id="t2", name="Team B", key="B"),
+            ]
+        )
         service = SetupService(provider, repo, _make_config())
 
         cache = service.ensure(SetupOptions(team_id_override="t2"))
@@ -152,10 +159,12 @@ class TestEnsureWithEmptyCache:
 
     def test_multiple_matching_projects_raises(self) -> None:
         repo = InMemoryCacheRepository()
-        provider = _make_provider(projects=[
-            Project(id="p1", name="my-repo-v1"),
-            Project(id="p2", name="my-repo-v2"),
-        ])
+        provider = _make_provider(
+            projects=[
+                Project(id="p1", name="my-repo-v1"),
+                Project(id="p2", name="my-repo-v2"),
+            ]
+        )
         service = SetupService(provider, repo, _make_config())
 
         with pytest.raises(NeedsChoice, match="Multiple projects match"):
@@ -163,10 +172,12 @@ class TestEnsureWithEmptyCache:
 
     def test_exact_name_match_preferred(self) -> None:
         repo = InMemoryCacheRepository()
-        provider = _make_provider(projects=[
-            Project(id="p1", name="my-repo-extra"),
-            Project(id="p2", name="my-repo"),
-        ])
+        provider = _make_provider(
+            projects=[
+                Project(id="p1", name="my-repo-extra"),
+                Project(id="p2", name="my-repo"),
+            ]
+        )
         service = SetupService(provider, repo, _make_config())
 
         cache = service.ensure()
