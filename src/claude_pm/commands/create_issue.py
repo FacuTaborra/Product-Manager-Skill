@@ -30,10 +30,15 @@ def run(args: argparse.Namespace) -> int:
         matched = next((p for p in projects if p["id"] == project_id_override), None)
         cache.data["linearProjectName"] = matched["name"] if matched else project_id_override
 
-    description_path = Path(args.description_file).expanduser()
-    if not description_path.is_file():
-        raise PMError(f"Description file not found: {description_path}")
-    description = description_path.read_text(encoding="utf-8")
+    if args.description_file:
+        description_path = Path(args.description_file).expanduser()
+        if not description_path.is_file():
+            raise PMError(f"Description file not found: {description_path}")
+        description = description_path.read_text(encoding="utf-8")
+    elif args.description:
+        description = args.description
+    else:
+        raise PMError("Either --description or --description-file is required.")
 
     issue = CreateIssueService(provider, cache).create(
         title=args.title,

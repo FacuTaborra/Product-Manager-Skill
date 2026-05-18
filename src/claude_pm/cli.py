@@ -132,9 +132,14 @@ def build_parser() -> argparse.ArgumentParser:
     _add_repo_arg(p_create)
     p_create.add_argument("--title", required=True)
     p_create.add_argument(
+        "--description",
+        default=None,
+        help="Issue description as an inline string (Markdown).",
+    )
+    p_create.add_argument(
         "--description-file",
-        required=True,
-        help="Path to a UTF-8 file with the issue description (Markdown).",
+        default=None,
+        help="Path to a UTF-8 file with the issue description (Markdown). Overrides --description.",
     )
     p_create.add_argument(
         "--state",

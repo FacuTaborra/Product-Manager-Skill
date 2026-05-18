@@ -32,8 +32,8 @@ If the user requests something not covered by the subcommands listed here, respo
 | `briefing` | Open issues grouped by state, plus vault context. Outputs JSON. |
 | `get-issue --id <ID>` | Fetch a single issue by ID — returns title, description, state, priority, url. |
 | `search "<query>"` | Search issues for duplicate detection before planning. |
-| `create-issue --title T --description-file F [--state S] [--priority N] [--assignee EMAIL] [--label L] [--project-id ID]` | Create one issue. |
-| `update-issue --id <ID> [--title T] [--description-file F] [--state S] [--priority N] [--assignee EMAIL]` | Update an existing issue. |
+| `create-issue --title T (--description "..." \| --description-file F) [--state S] [--priority N] [--assignee EMAIL] [--label L] [--project-id ID]` | Create one issue. |
+| `update-issue --id <ID> [--title T] [--description "..." \| --description-file F] [--state S] [--priority N] [--assignee EMAIL]` | Update an existing issue. |
 | `list-teams` | List teams/spaces in the workspace. |
 | `list-projects [--team-id ID]` | List projects/lists, optionally filtered by team/space. |
 | `list-states` | List workflow states for the current team. |
@@ -141,15 +141,17 @@ Present a table in the user's language. Maximum 8 issues.
 
 ### 4B.3 — Create issues (only after confirmation)
 
-Write description to a tempfile and call `create-issue`:
+Call `create-issue` with `--description` inline (no tempfile needed):
 
 ```bash
-DESC_FILE=$(python3 -c "import tempfile; f=tempfile.NamedTemporaryFile(suffix='.md',delete=False,mode='w',encoding='utf-8'); f.write('''CONTENT'''); print(f.name)")
 python3 ~/.claude/skills/pm/pm.py create-issue \
   --title "Título" \
-  --description-file "$DESC_FILE" \
+  --description "## Objetivo
+[problema que resuelve]
+
+## Criterios de aceptación
+- [ ] criterio 1" \
   --state Backlog
-rm -f "$DESC_FILE"
 ```
 
 **If multiple projects are configured** and no `--project-id` is passed, the CLI returns exit code 2 with the project list. Ask the user which project, then re-run with `--project-id <ID>`.
