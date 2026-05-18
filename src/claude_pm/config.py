@@ -32,7 +32,7 @@ _REPO_ENV_FILE = Path(__file__).parent.parent.parent / ".env"
 _PROJECTS_FILE = Path(__file__).parent.parent.parent / "projects.pm"
 
 
-def _read_projects_file(repo_name: str) -> "PmFileConfig":
+def _read_projects_file(repo_name: str) -> PmFileConfig:
     """Parse projects.pm and return the section matching repo_name, or empty config."""
     if not _PROJECTS_FILE.is_file():
         return PmFileConfig()
@@ -77,7 +77,7 @@ class Config:
     team_id_override: str | None
     project_id_override: str | None
     provider_name: str = "linear"
-    pm_file: "PmFileConfig" = None  # type: ignore[assignment]
+    pm_file: PmFileConfig = None  # type: ignore[assignment]
 
     def __post_init__(self) -> None:
         if self.pm_file is None:
