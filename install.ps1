@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 # claude-pm-skill installer (Windows PowerShell).
-# Copies SKILL.md and pm.py to ~/.claude/skills/pm/ and seeds the secret file.
+# Creates a junction ~/.claude/skills/pm/ -> repo root and seeds the secret file.
 
 $ErrorActionPreference = "Stop"
 
@@ -22,20 +22,11 @@ if (-not (Test-Path $ClaudeDir)) {
     Write-Host "      Continuing anyway - directories will be created."
 }
 
-New-Item -ItemType Directory -Path $SkillDir -Force | Out-Null
-Copy-Item -Path (Join-Path $RepoRoot "SKILL.md") -Destination (Join-Path $SkillDir "SKILL.md") -Force
-Copy-Item -Path (Join-Path $RepoRoot "pm.py")    -Destination (Join-Path $SkillDir "pm.py")    -Force
-Write-Host "  + $SkillDir\SKILL.md"
-Write-Host "  + $SkillDir\pm.py"
-
-# Sync the src/claude_pm package (mirror — remove stale first)
-$SrcSkillDir = Join-Path $SkillDir "src"
-$PkgTarget   = Join-Path $SrcSkillDir "claude_pm"
-$PkgSource   = Join-Path $RepoRoot "src\claude_pm"
-New-Item -ItemType Directory -Path $SrcSkillDir -Force | Out-Null
-if (Test-Path $PkgTarget) { Remove-Item -Path $PkgTarget -Recurse -Force }
-Copy-Item -Path $PkgSource -Destination $PkgTarget -Recurse -Force
-Write-Host "  + $PkgTarget\ (package)"
+# Create junction: skills\pm\ -> repo root (junction doesn't need admin/Dev Mode)
+if (Test-Path $SkillDir) { Remove-Item -Path $SkillDir -Recurse -Force }
+New-Item -ItemType Directory -Path (Split-Path $SkillDir) -Force | Out-Null
+New-Item -ItemType Junction -Path $SkillDir -Target $RepoRoot | Out-Null
+Write-Host "  -> $SkillDir -> $RepoRoot (junction)"
 
 New-Item -ItemType Directory -Path $SecretsDir -Force | Out-Null
 
@@ -45,6 +36,34 @@ if (Test-Path $SecretFile) {
     Copy-Item -Path $ExampleFile -Destination $SecretFile -Force
     Write-Host "  + $SecretFile (template - edit it to add your real key)"
 }
+
+# Add pm.py permission to ~/.claude/settings.json so Claude never prompts for it
+$SettingsFile = Join-Path $ClaudeDir "settings.json"
+$PmPermission = "Bash(python3 ~/.claude/skills/pm/pm.py *)"
+
+$pythonScript = @"
+import json, os
+
+settings_file = r"$($SettingsFile)"
+permission = "$PmPermission"
+
+if not os.path.exists(settings_file):
+    data = {}
+else:
+    with open(settings_file) as f:
+        data = json.load(f)
+
+data.setdefault('permissions', {}).setdefault('allow', [])
+if permission not in data['permissions']['allow']:
+    data['permissions']['allow'].append(permission)
+    with open(settings_file, 'w') as f:
+        json.dump(data, f, indent=2)
+    print(f'  + added permission: {permission}')
+else:
+    print(f'  = permission already present: {permission}')
+"@
+
+$pythonScript | python3 -
 
 Write-Host ""
 Write-Host "Installed."

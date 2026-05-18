@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # claude-pm-skill installer (Linux / macOS / Git Bash on Windows).
-# Copies SKILL.md, pm.py and the src/claude_pm package to ~/.claude/skills/pm/
-# and seeds the secret file.
+# Creates a symlink ~/.claude/skills/pm/ -> repo root and seeds the secret file.
 
 set -euo pipefail
 
@@ -23,18 +22,11 @@ if [ ! -d "$CLAUDE_DIR" ]; then
   echo "      Continuing anyway — directories will be created."
 fi
 
-mkdir -p "$SKILL_DIR"
-cp "$REPO_ROOT/SKILL.md" "$SKILL_DIR/SKILL.md"
-cp "$REPO_ROOT/pm.py"    "$SKILL_DIR/pm.py"
-chmod +x "$SKILL_DIR/pm.py" 2>/dev/null || true
-echo "  + $SKILL_DIR/SKILL.md"
-echo "  + $SKILL_DIR/pm.py"
-
-# Sync the src/claude_pm package (mirror — remove stale files first)
-mkdir -p "$SKILL_DIR/src"
-rm -rf "$SKILL_DIR/src/claude_pm"
-cp -r "$REPO_ROOT/src/claude_pm" "$SKILL_DIR/src/claude_pm"
-echo "  + $SKILL_DIR/src/claude_pm/ (package)"
+# Create symlink: skills/pm/ -> repo root (rm handles both dir and existing symlink)
+rm -rf "$SKILL_DIR"
+mkdir -p "$(dirname "$SKILL_DIR")"
+ln -s "$REPO_ROOT" "$SKILL_DIR"
+echo "  → $SKILL_DIR -> $REPO_ROOT (symlink)"
 
 mkdir -p "$SECRETS_DIR"
 chmod 700 "$SECRETS_DIR" 2>/dev/null || true
