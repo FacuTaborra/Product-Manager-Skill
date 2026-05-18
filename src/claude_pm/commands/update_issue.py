@@ -9,7 +9,7 @@ from ..application.setup_flow import SetupService
 from ..config import Config
 from ..domain.models import IssueUpdate
 from ..exceptions import EXIT_OK, PMError
-from ._helpers import build_provider, load_cache, print_json
+from ._helpers import build_provider, get_cache_repo, print_json
 
 
 def run(args: argparse.Namespace) -> int:
@@ -25,7 +25,7 @@ def run(args: argparse.Namespace) -> int:
 
     state_id: str | None = None
     if args.state:
-        cache = SetupService(provider, load_cache(config), config).ensure()
+        cache = SetupService(provider, get_cache_repo(config), config).ensure()
         state_id = cache.state_ids.get(args.state)
         if not state_id:
             available = ", ".join(cache.state_ids.keys())

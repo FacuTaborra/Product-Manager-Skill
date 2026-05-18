@@ -1,0 +1,109 @@
+"""Tests for HttpClient._execute: retry logic and error handling."""
+
+from __future__ import annotations
+
+import json
+import urllib.error
+from io import BytesIO
+from unittest.mock import MagicMock, patch
+
+import pytest
+
+from src.claude_pm.exceptions import ProviderError
+from src.claude_pm.infrastructure.providers._http import HttpClient
+
+
+def _make_client() -> HttpClient:
+    return HttpClient(url="https://example.com/api", headers={"Authorization": "test"}, max_retries=1)
+
+
+def _mock_response(data: dict, status: int = 200) -> MagicMock:
+    body = json.dumps(data).encode()
+    resp = MagicMock()
+    resp.read.return_value = body
+    resp.__enter__ = lambda s: s
+    resp.__exit__ = MagicMock(return_value=False)
+    return resp
+
+
+def _http_error(code: int, body: bytes = b"error") -> urllib.error.HTTPError:
+    return urllib.error.HTTPError(
+        url="https://example.com",
+        code=code,
+        msg="err",
+        hdrs=None,  # type: ignore[arg-type]
+        fp=BytesIO(body),
+    )
+
+
+class TestGetJson:
+    def test_200_returns_parsed_json(self) -> None:
+        client = _make_client()
+        with patch("urllib.request.urlopen", return_value=_mock_response({"ok": True})):
+            result = client.get_json("https://example.com/api")
+        assert result == {"ok": True}
+
+    def test_401_raises_provider_error_immediately(self) -> None:
+        client = _make_client()
+        with patch("urllib.request.urlopen", side_effect=_http_error(401)):
+            with pytest.raises(ProviderError, match="Authentication rejected"):
+                client.get_json("https://example.com/api")
+
+    def test_403_raises_provider_error_immediately(self) -> None:
+        client = _make_client()
+        with patch("urllib.request.urlopen", side_effect=_http_error(403)):
+            with pytest.raises(ProviderError, match="Authentication rejected"):
+                client.get_json("https://example.com/api")
+
+    def test_500_retries_then_succeeds(self) -> None:
+        client = _make_client()
+        responses = [_http_error(500), _mock_response({"ok": True})]
+
+        call_count = 0
+
+        def side_effect(*args, **kwargs):
+            nonlocal call_count
+            r = responses[call_count]
+            call_count += 1
+            if isinstance(r, Exception):
+                raise r
+            return r
+
+        with patch("urllib.request.urlopen", side_effect=side_effect):
+            with patch("time.sleep"):
+                result = client.get_json("https://example.com/api")
+        assert result == {"ok": True}
+        assert call_count == 2
+
+    def test_500_twice_raises_provider_error(self) -> None:
+        client = _make_client()
+        with patch("urllib.request.urlopen", side_effect=_http_error(500)):
+            with patch("time.sleep"):
+                with pytest.raises(ProviderError, match="HTTP 500"):
+                    client.get_json("https://example.com/api")
+
+    def test_url_error_retries_then_raises(self) -> None:
+        client = _make_client()
+        err = urllib.error.URLError("connection refused")
+        with patch("urllib.request.urlopen", side_effect=err):
+            with patch("time.sleep"):
+                with pytest.raises(ProviderError, match="Network error"):
+                    client.get_json("https://example.com/api")
+
+
+class TestPostJson:
+    def test_post_returns_dict(self) -> None:
+        client = _make_client()
+        with patch("urllib.request.urlopen", return_value=_mock_response({"id": "123"})):
+            result = client.post_json({"title": "Test"})
+        assert result == {"id": "123"}
+
+    def test_post_non_dict_response_raises(self) -> None:
+        client = _make_client()
+        resp = MagicMock()
+        resp.read.return_value = json.dumps([1, 2, 3]).encode()
+        resp.__enter__ = lambda s: s
+        resp.__exit__ = MagicMock(return_value=False)
+        with patch("urllib.request.urlopen", return_value=resp):
+            with pytest.raises(ProviderError, match="Unexpected response shape"):
+                client.post_json({"title": "Test"})

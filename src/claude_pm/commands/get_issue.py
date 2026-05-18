@@ -7,13 +7,13 @@ import argparse
 from ..application.setup_flow import SetupService
 from ..config import Config
 from ..exceptions import EXIT_OK
-from ._helpers import build_provider, load_cache, print_json
+from ._helpers import build_provider, get_cache_repo, print_json
 
 
 def run(args: argparse.Namespace) -> int:
     config = Config.load(args.repo_name)
     provider = build_provider(config)
-    SetupService(provider, load_cache(config), config).ensure()
+    SetupService(provider, get_cache_repo(config), config).ensure()
 
     issue = provider.get_issue(args.id)
     print_json({

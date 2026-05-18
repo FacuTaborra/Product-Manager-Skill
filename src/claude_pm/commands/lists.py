@@ -7,7 +7,7 @@ import argparse
 from ..application.setup_flow import SetupService
 from ..config import Config
 from ..exceptions import EXIT_OK, PMError
-from ._helpers import build_provider, load_cache, print_json
+from ._helpers import build_provider, get_cache_repo, print_json
 
 
 def run_list_teams(args: argparse.Namespace) -> int:
@@ -21,7 +21,7 @@ def run_list_teams(args: argparse.Namespace) -> int:
 def run_list_states(args: argparse.Namespace) -> int:
     config = Config.load(args.repo_name)
     provider = build_provider(config)
-    cache = SetupService(provider, load_cache(config), config).ensure()
+    cache = SetupService(provider, get_cache_repo(config), config).ensure()
     print_json({"states": cache.state_ids})
     return EXIT_OK
 
@@ -29,7 +29,7 @@ def run_list_states(args: argparse.Namespace) -> int:
 def run_list_labels(args: argparse.Namespace) -> int:
     config = Config.load(args.repo_name)
     provider = build_provider(config)
-    cache = SetupService(provider, load_cache(config), config).ensure()
+    cache = SetupService(provider, get_cache_repo(config), config).ensure()
     team_id = cache.team_id
     if not team_id:
         raise PMError("Cache missing team_id. Run `pm setup` first.")

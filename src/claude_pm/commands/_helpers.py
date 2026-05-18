@@ -8,7 +8,7 @@ from typing import Any
 from ..config import Config
 from ..domain.models import Briefing, Issue
 from ..domain.ports import ContextProvider, IssueProvider
-from ..infrastructure.cache import Cache
+from ..infrastructure.cache import Cache, JsonFileCacheRepository
 from ..infrastructure.context.null import NullContext
 from ..infrastructure.context.obsidian import ObsidianVaultContext
 from ..infrastructure.providers._registry import get_provider
@@ -25,8 +25,12 @@ def build_context(config: Config) -> ContextProvider:
     return ObsidianVaultContext(config.vault_path)
 
 
+def get_cache_repo(config: Config) -> JsonFileCacheRepository:
+    return JsonFileCacheRepository(config.cache_path)
+
+
 def load_cache(config: Config) -> Cache:
-    return Cache.load(config.cache_path)
+    return get_cache_repo(config).load()
 
 
 def issue_to_dict(issue: Issue) -> dict[str, Any]:

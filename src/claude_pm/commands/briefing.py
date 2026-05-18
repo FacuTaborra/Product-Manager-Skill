@@ -8,13 +8,13 @@ from ..application.briefing import BriefingService
 from ..application.setup_flow import SetupService
 from ..config import Config
 from ..exceptions import EXIT_OK, PMError
-from ._helpers import briefing_to_dict, build_context, build_provider, load_cache, print_json
+from ._helpers import briefing_to_dict, build_context, build_provider, get_cache_repo, print_json
 
 
 def run(args: argparse.Namespace) -> int:
     config = Config.load(args.repo_name)
     provider = build_provider(config)
-    cache = SetupService(provider, load_cache(config), config).ensure()
+    cache = SetupService(provider, get_cache_repo(config), config).ensure()
 
     projects = cache.projects
     if not projects:
@@ -24,7 +24,7 @@ def run(args: argparse.Namespace) -> int:
     service = BriefingService(provider, context)
 
     if len(projects) > 1:
-        result = service.generate_multi(projects=projects, repo_name=config.repo_name)
+        result = service.generate_multi(projects=list(projects), repo_name=config.repo_name)
         print_json(result)
     else:
         briefing = service.generate(

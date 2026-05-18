@@ -8,7 +8,7 @@ from ..config import Config
 from ..domain.models import Project, Team
 from ..domain.ports import IssueProvider
 from ..exceptions import NeedsChoice, PMError
-from ..infrastructure.cache import Cache
+from ..infrastructure.cache import Cache, CacheRepository
 
 
 @dataclass
@@ -30,46 +30,39 @@ class SetupService:
         `create_project_if_missing=True`) or raise NeedsChoice asking the user.
     """
 
-    def __init__(self, provider: IssueProvider, cache: Cache, config: Config) -> None:
+    def __init__(self, provider: IssueProvider, cache_repo: CacheRepository, config: Config) -> None:
         self.provider = provider
-        self.cache = cache
+        self.cache_repo = cache_repo
         self.config = config
 
     def ensure(self, options: SetupOptions | None = None) -> Cache:
         opts = options or SetupOptions()
+        cache = self.cache_repo.load()
 
         if self.config.pm_file.projects:
-            return self._setup_from_pm_file(opts)
+            return self._setup_from_pm_file(opts, cache)
 
-        cache_complete = (
-            self.cache.team_id
-            and self.cache.projects
-            and self.cache.state_ids
-            and self.cache.is_fresh()
-        )
-        if not opts.force and cache_complete:
-            return self.cache
+        if not opts.force and cache.is_complete() and cache.is_fresh():
+            return cache
 
-        team_id = self._resolve_team(opts)
-        project = self._resolve_project(team_id, opts)
+        team_id = self._resolve_team(opts, cache)
+        project = self._resolve_project(team_id, opts, cache)
         state_ids = {s.name: s.id for s in self.provider.list_states(team_id)}
-        self.cache.write(
+        return self.cache_repo.write(
             team_id=team_id,
             project_id=project.id,
             project_name=project.name,
             state_ids=state_ids,
         )
-        return self.cache
 
-    def _setup_from_pm_file(self, opts: SetupOptions) -> Cache:
+    def _setup_from_pm_file(self, opts: SetupOptions, cache: Cache) -> Cache:
         pm = self.config.pm_file
 
-        # Use cache if it already has exactly the projects declared in pm_file
-        if not opts.force and self.cache.team_id and self.cache.state_ids and self.cache.is_fresh():
-            cached_names = {p["name"].lower() for p in self.cache.projects}
+        if not opts.force and cache.team_id and cache.state_ids and cache.is_fresh():
+            cached_names = {p["name"].lower() for p in cache.projects}
             pm_names = {n.lower() for n in pm.projects}
             if cached_names == pm_names:
-                return self.cache
+                return cache
 
         teams = self.provider.list_teams()
         if not teams:
@@ -100,13 +93,12 @@ class SetupService:
             resolved.append({"id": proj.id, "name": proj.name})
 
         state_ids = {s.name: s.id for s in self.provider.list_states(team_id)}
-        self.cache.write_multi(team_id=team_id, projects=resolved, state_ids=state_ids)
-        return self.cache
+        return self.cache_repo.write_multi(team_id=team_id, projects=resolved, state_ids=state_ids)
 
     # -- internals -----------------------------------------------------------
 
-    def _resolve_team(self, opts: SetupOptions) -> str:
-        override = opts.team_id_override or self.config.team_id_override or self.cache.team_id
+    def _resolve_team(self, opts: SetupOptions, cache: Cache) -> str:
+        override = opts.team_id_override or self.config.team_id_override or cache.team_id
         teams = self.provider.list_teams()
         if not teams:
             raise PMError("Workspace has no teams. Create one in your tracker first.")
@@ -122,13 +114,12 @@ class SetupService:
             {"action": "choose-team", "teams": [_team_dict(t) for t in teams]},
         )
 
-    def _resolve_project(self, team_id: str, opts: SetupOptions) -> Project:
+    def _resolve_project(self, team_id: str, opts: SetupOptions, cache: Cache) -> Project:
         override = (
-            opts.project_id_override or self.config.project_id_override or self.cache.project_id
+            opts.project_id_override or self.config.project_id_override or cache.project_id
         )
         if override:
-            # We trust the override but use the cached name (or repo_name as fallback).
-            return Project(id=override, name=self.cache.project_name or self.config.repo_name)
+            return Project(id=override, name=cache.project_name or self.config.repo_name)
 
         candidates = self.provider.find_projects(self.config.repo_name)
         exact = [p for p in candidates if p.name.lower() == self.config.repo_name.lower()]

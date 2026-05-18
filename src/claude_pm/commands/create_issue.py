@@ -3,19 +3,21 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import replace
 from pathlib import Path
 
 from ..application.issue_creation import CreateIssueService
 from ..application.setup_flow import SetupService
 from ..config import Config
 from ..exceptions import EXIT_OK, NeedsChoice, PMError
-from ._helpers import build_provider, load_cache, print_json
+from ._helpers import build_provider, get_cache_repo, print_json
 
 
 def run(args: argparse.Namespace) -> int:
     config = Config.load(args.repo_name)
     provider = build_provider(config)
-    cache = SetupService(provider, load_cache(config), config).ensure()
+    cache_repo = get_cache_repo(config)
+    cache = SetupService(provider, cache_repo, config).ensure()
 
     # Resolve which project to use
     projects = cache.projects
@@ -23,12 +25,15 @@ def run(args: argparse.Namespace) -> int:
     if len(projects) > 1 and not project_id_override:
         raise NeedsChoice(
             "Multiple projects configured. Re-run with --project-id <ID>.",
-            {"action": "choose-project", "projects": projects},
+            {"action": "choose-project", "projects": list(projects)},
         )
     if project_id_override:
-        cache.data["linearProjectId"] = project_id_override
         matched = next((p for p in projects if p["id"] == project_id_override), None)
-        cache.data["linearProjectName"] = matched["name"] if matched else project_id_override
+        cache = replace(
+            cache,
+            project_id=project_id_override,
+            project_name=matched["name"] if matched else project_id_override,
+        )
 
     if args.description_file:
         description_path = Path(args.description_file).expanduser()
@@ -51,7 +56,7 @@ def run(args: argparse.Namespace) -> int:
     print_json(
         {
             "ok": True,
-            "id": issue.identifier,  # human-readable ID for compat
+            "id": issue.identifier,
             "identifier": issue.identifier,
             "title": issue.title,
             "url": issue.url,
