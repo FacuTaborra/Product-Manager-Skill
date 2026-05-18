@@ -225,6 +225,6 @@ def _map_priority(p: Any) -> int:
         return 0
     val = p.get("id") if isinstance(p, dict) else p
     try:
-        return int(val)
+        return int(val) if val is not None else 0
     except (TypeError, ValueError):
         return 0

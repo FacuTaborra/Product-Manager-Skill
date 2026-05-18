@@ -23,6 +23,10 @@ class IssueProvider(Protocol):
         """List all teams the authenticated user belongs to."""
         ...
 
+    def create_team(self, name: str) -> Team:
+        """Create a new team."""
+        ...
+
     def list_projects(self, team_id: str | None = None) -> list[Project]:
         """List projects, optionally filtered by team."""
         ...
