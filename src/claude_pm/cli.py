@@ -8,7 +8,7 @@ import sys
 
 from . import __version__
 from ._stdio import force_utf8_stdio
-from .commands import briefing, create_issue, doctor, lists, search, setup, update_issue
+from .commands import briefing, create_issue, doctor, docs, lists, search, setup, update_issue
 from .exceptions import EXIT_OK, NeedsChoice, PMError
 
 
@@ -144,6 +144,32 @@ def build_parser() -> argparse.ArgumentParser:
         help="Project/list ID to create the issue in (required when multiple projects are configured).",
     )
     p_create.set_defaults(func=create_issue.run)
+
+    p_create_doc = sub.add_parser("create-doc", help="Create a ClickUp Doc (workspace level).")
+    _add_repo_arg(p_create_doc)
+    p_create_doc.add_argument("--title", required=True)
+    p_create_doc.add_argument(
+        "--content-file",
+        default=None,
+        help="Path to a UTF-8 Markdown file for the first page.",
+    )
+    p_create_doc.set_defaults(func=docs.run_create_doc)
+
+    p_update_doc = sub.add_parser("update-doc", help="Update title and/or page content of a ClickUp Doc.")
+    _add_repo_arg(p_update_doc)
+    p_update_doc.add_argument("--doc-id", required=True, help="ClickUp Doc ID.")
+    p_update_doc.add_argument("--title", default=None, help="New title for the doc.")
+    p_update_doc.add_argument(
+        "--content-file",
+        default=None,
+        help="Path to a UTF-8 Markdown file for page content.",
+    )
+    p_update_doc.add_argument(
+        "--page-id",
+        default=None,
+        help="Existing page ID to update (omit to add a new page).",
+    )
+    p_update_doc.set_defaults(func=docs.run_update_doc)
 
     return parser
 

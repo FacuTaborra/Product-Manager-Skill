@@ -72,6 +72,13 @@ class IssueUpdate:
 
 
 @dataclass(frozen=True)
+class Doc:
+    id: str
+    title: str
+    url: str | None = None
+
+
+@dataclass(frozen=True)
 class Briefing:
     repo: str
     project_name: str

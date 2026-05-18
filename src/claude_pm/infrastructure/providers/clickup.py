@@ -12,11 +12,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from ...domain.models import Issue, IssueDraft, IssueUpdate, Label, Project, State, Team, User
+from ...domain.models import Doc, Issue, IssueDraft, IssueUpdate, Label, Project, State, Team, User
 from ...exceptions import ProviderError
 from ._http import HttpClient
 
 CLICKUP_API_BASE = "https://api.clickup.com/api/v2"
+CLICKUP_API_V3_BASE = "https://api.clickup.com/api/v3"
 
 # ClickUp task statuses that are considered "done" — excluded from briefing
 _DONE_TYPES = {"done", "closed"}
@@ -49,6 +50,19 @@ class ClickUpProvider:
         result = client.post_json(body)
         if not isinstance(result, dict):
             raise ProviderError(f"Unexpected ClickUp response: {type(result).__name__}")
+        return result
+
+    def _get_v3(self, path: str) -> Any:
+        return self._http.get_json(f"{CLICKUP_API_V3_BASE}/{path}")
+
+    def _post_v3(self, path: str, body: dict[str, Any]) -> dict[str, Any]:
+        client = HttpClient(
+            url=f"{CLICKUP_API_V3_BASE}/{path}",
+            headers=self._http.headers,
+        )
+        result = client.post_json(body)
+        if not isinstance(result, dict):
+            raise ProviderError(f"Unexpected ClickUp v3 response: {type(result).__name__}")
         return result
 
     def _workspace(self) -> str:
@@ -190,6 +204,52 @@ class ClickUpProvider:
 
     def create_team(self, name: str) -> Team:
         raise ProviderError("ClickUp does not support creating Spaces via API. Use the ClickUp UI.")
+
+    # -- Docs (ClickUp v3, not part of IssueProvider) ------------------------
+
+    def create_doc(self, title: str, content: str | None = None) -> Doc:
+        workspace_id = self._workspace()
+        payload: dict[str, Any] = {
+            "title": title,
+            "parent": {"id": workspace_id, "type": 4},
+        }
+        data = self._post_v3(f"workspaces/{workspace_id}/docs", payload)
+        doc_data = data.get("doc") or data
+        doc = Doc(id=doc_data["id"], title=doc_data["title"], url=doc_data.get("url"))
+        if content:
+            self._post_v3(
+                f"workspaces/{workspace_id}/docs/{doc.id}/pages",
+                {"title": title, "content": content, "content_format": "text/md"},
+            )
+        return doc
+
+    def update_doc(
+        self,
+        doc_id: str,
+        title: str | None = None,
+        content: str | None = None,
+        page_id: str | None = None,
+    ) -> Doc:
+        workspace_id = self._workspace()
+        doc_data: dict[str, Any] = {"id": doc_id, "title": ""}
+        if title:
+            doc_data = self._http.put_json(
+                f"{CLICKUP_API_V3_BASE}/workspaces/{workspace_id}/docs/{doc_id}",
+                {"title": title},
+            )
+            doc_data = doc_data.get("doc") or doc_data
+        if content:
+            if page_id:
+                self._http.put_json(
+                    f"{CLICKUP_API_V3_BASE}/workspaces/{workspace_id}/docs/{doc_id}/pages/{page_id}",
+                    {"content": content, "content_format": "text/md"},
+                )
+            else:
+                self._post_v3(
+                    f"workspaces/{workspace_id}/docs/{doc_id}/pages",
+                    {"title": title or "Update", "content": content, "content_format": "text/md"},
+                )
+        return Doc(id=doc_id, title=doc_data.get("title", ""), url=doc_data.get("url"))
 
 
 # ---------------------------------------------------------------------------
