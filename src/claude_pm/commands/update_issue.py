@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 
 from ..application.setup_flow import SetupService
 from ..config import Config
@@ -14,6 +15,13 @@ from ._helpers import build_provider, load_cache, print_json
 def run(args: argparse.Namespace) -> int:
     config = Config.load(args.repo_name)
     provider = build_provider(config)
+
+    description: str | None = args.description
+    if args.description_file:
+        path = Path(args.description_file).expanduser()
+        if not path.is_file():
+            raise PMError(f"Description file not found: {path}")
+        description = path.read_text(encoding="utf-8")
 
     state_id: str | None = None
     if args.state:
@@ -33,7 +41,7 @@ def run(args: argparse.Namespace) -> int:
     update = IssueUpdate(
         issue_id=args.id,
         title=args.title,
-        description=args.description,
+        description=description,
         state_id=state_id,
         priority=args.priority,
         assignee_id=assignee_id,

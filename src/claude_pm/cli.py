@@ -112,7 +112,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--id", required=True, help="Issue identifier (e.g. FAC-12 or ClickUp task ID)."
     )
     p_update.add_argument("--title", default=None)
-    p_update.add_argument("--description", default=None)
+    p_update.add_argument("--description", default=None, help="Inline description string.")
+    p_update.add_argument(
+        "--description-file",
+        default=None,
+        help="Path to a UTF-8 file with the new description (Markdown). Overrides --description.",
+    )
     p_update.add_argument("--state", default=None, help="State name (e.g. 'In Progress').")
     p_update.add_argument(
         "--priority",

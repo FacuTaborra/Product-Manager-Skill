@@ -33,7 +33,7 @@ If the user requests something not covered by the subcommands listed here, respo
 | `get-issue --id <ID>` | Fetch a single issue by ID — returns title, description, state, priority, url. |
 | `search "<query>"` | Search issues for duplicate detection before planning. |
 | `create-issue --title T --description-file F [--state S] [--priority N] [--assignee EMAIL] [--label L] [--project-id ID]` | Create one issue. |
-| `update-issue --id <ID> [--title T] [--description F] [--state S] [--priority N] [--assignee EMAIL]` | Update an existing issue. |
+| `update-issue --id <ID> [--title T] [--description-file F] [--state S] [--priority N] [--assignee EMAIL]` | Update an existing issue. |
 | `list-teams` | List teams/spaces in the workspace. |
 | `list-projects [--team-id ID]` | List projects/lists, optionally filtered by team/space. |
 | `list-states` | List workflow states for the current team. |
