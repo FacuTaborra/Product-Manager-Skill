@@ -63,6 +63,10 @@ class IssueProvider(Protocol):
         """Create a new issue from the given draft."""
         ...
 
+    def get_issue(self, issue_id: str) -> Issue:
+        """Fetch a single issue by ID or identifier, including its description."""
+        ...
+
     def update_issue(self, update: IssueUpdate) -> Issue:
         """Update an existing issue. Only fields set (not None) are changed."""
         ...

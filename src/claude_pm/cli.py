@@ -8,7 +8,17 @@ import sys
 
 from . import __version__
 from ._stdio import force_utf8_stdio
-from .commands import briefing, create_issue, docs, doctor, lists, search, setup, update_issue
+from .commands import (
+    briefing,
+    create_issue,
+    docs,
+    doctor,
+    get_issue,
+    lists,
+    search,
+    setup,
+    update_issue,
+)
 from .exceptions import EXIT_OK, NeedsChoice, PMError
 
 
@@ -90,6 +100,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Search across all projects instead of just the current one.",
     )
     p_search.set_defaults(func=search.run)
+
+    p_get = sub.add_parser("get-issue", help="Fetch a single issue by ID (includes description).")
+    _add_repo_arg(p_get)
+    p_get.add_argument("--id", required=True, help="Issue identifier (e.g. FAC-12 or ClickUp task ID).")
+    p_get.set_defaults(func=get_issue.run)
 
     p_update = sub.add_parser("update-issue", help="Update an existing issue.")
     _add_repo_arg(p_update)

@@ -201,6 +201,18 @@ class LinearProvider:
             raise ProviderError(f"issueCreate failed: {result}")
         return _to_issue(result["issue"])
 
+    def get_issue(self, issue_id: str) -> Issue:
+        data = self._query(
+            "query($q: String!) { issues(filter: {identifier: {eq: $q}}) "
+            "{ nodes { identifier title priority url description state { id name } "
+            "project { id name } } } }",
+            {"q": issue_id},
+        )
+        nodes = (data.get("issues") or {}).get("nodes") or []
+        if not nodes:
+            raise ProviderError(f"Issue '{issue_id}' not found.")
+        return _to_issue(nodes[0], with_project=True, with_description=True)
+
     def update_issue(self, update: IssueUpdate) -> Issue:
         # Resolve identifier (e.g. FAC-12) → UUID
         data = self._query(
@@ -240,7 +252,9 @@ class LinearProvider:
 # ---------------------------------------------------------------------------
 
 
-def _to_issue(node: dict[str, Any], *, with_project: bool = False) -> Issue:
+def _to_issue(
+    node: dict[str, Any], *, with_project: bool = False, with_description: bool = False
+) -> Issue:
     state_node = node.get("state") or {}
     state = State(id=state_node.get("id", ""), name=state_node.get("name", "Unknown"))
     project: Project | None = None
@@ -255,4 +269,5 @@ def _to_issue(node: dict[str, Any], *, with_project: bool = False) -> Issue:
         priority=int(node.get("priority", 0) or 0),
         url=node.get("url"),
         project=project,
+        description=node.get("description") if with_description else None,
     )

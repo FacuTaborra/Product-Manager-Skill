@@ -47,6 +47,7 @@ class Issue:
     priority: int = 0
     url: str | None = None
     project: Project | None = None
+    description: str | None = None
 
 
 @dataclass(frozen=True)

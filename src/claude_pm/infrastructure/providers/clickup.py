@@ -171,7 +171,7 @@ class ClickUpProvider:
     def create_issue(self, draft: IssueDraft) -> Issue:
         body: dict[str, Any] = {
             "name": draft.title,
-            "description": draft.description,
+            "markdown_description": draft.description,
         }
         if draft.state_id:
             body["status"] = draft.state_id
@@ -183,12 +183,16 @@ class ClickUpProvider:
         data = self._post(f"list/{draft.project_id}/task", body)
         return _to_issue(data)
 
+    def get_issue(self, issue_id: str) -> Issue:
+        data = self._get(f"task/{issue_id}")
+        return _to_issue(data, with_project=True, with_description=True)
+
     def update_issue(self, update: IssueUpdate) -> Issue:
         body: dict[str, Any] = {}
         if update.title is not None:
             body["name"] = update.title
         if update.description is not None:
-            body["description"] = update.description
+            body["markdown_description"] = update.description
         if update.state_id is not None:
             body["status"] = update.state_id
         if update.priority is not None:
@@ -262,7 +266,9 @@ def _is_done(task: dict[str, Any]) -> bool:
     return status.get("type", "").lower() in _DONE_TYPES
 
 
-def _to_issue(task: dict[str, Any], *, with_project: bool = False) -> Issue:
+def _to_issue(
+    task: dict[str, Any], *, with_project: bool = False, with_description: bool = False
+) -> Issue:
     status_node = task.get("status") or {}
     state = State(id=status_node.get("id", ""), name=status_node.get("status", "Unknown"))
     project: Project | None = None
@@ -277,6 +283,7 @@ def _to_issue(task: dict[str, Any], *, with_project: bool = False) -> Issue:
         priority=_map_priority(task.get("priority")),
         url=task.get("url"),
         project=project,
+        description=task.get("description") if with_description else None,
     )
 
 

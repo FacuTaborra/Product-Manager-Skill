@@ -58,7 +58,7 @@ class HttpClient:
         raise ProviderError(f"Request failed after retries: {last_err}")
 
     def put_json(self, url: str, payload: dict[str, Any]) -> dict[str, Any]:
-        body = json.dumps(payload).encode("utf-8")
+        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         req = urllib.request.Request(
             url,
             data=body,
@@ -95,7 +95,7 @@ class HttpClient:
         raise ProviderError(f"Request failed after retries: {last_err}")
 
     def patch_json(self, url: str, payload: dict[str, Any]) -> dict[str, Any]:
-        body = json.dumps(payload).encode("utf-8")
+        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         req = urllib.request.Request(
             url,
             data=body,
@@ -132,7 +132,7 @@ class HttpClient:
         raise ProviderError(f"Request failed after retries: {last_err}")
 
     def post_json(self, payload: dict[str, Any]) -> dict[str, Any]:
-        body = json.dumps(payload).encode("utf-8")
+        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         req = urllib.request.Request(
             self.url,
             data=body,
