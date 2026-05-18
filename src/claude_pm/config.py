@@ -12,10 +12,12 @@ from .exceptions import ConfigError
 @dataclass
 class PmFileConfig:
     """Contents of the `.pm` file at the repo root."""
+
     provider: str | None = None
     space: str | None = None
     projects: list[str] = field(default_factory=list)
     label: str | None = None
+
 
 DEFAULT_VAULT = Path.home() / ".claude-memory"
 DEFAULT_LINEAR_PAK_FILE = Path.home() / ".claude" / "secrets" / "linear-pak.env"
@@ -98,7 +100,9 @@ class Config:
             pak = _read_env_key(_REPO_ENV_FILE, "CLICKUP_API_KEY")
             pak_file = _REPO_ENV_FILE
             if not pak:
-                pak_file = Path(os.environ.get("CLICKUP_PAK_FILE", str(DEFAULT_CLICKUP_PAK_FILE))).expanduser()
+                pak_file = Path(
+                    os.environ.get("CLICKUP_PAK_FILE", str(DEFAULT_CLICKUP_PAK_FILE))
+                ).expanduser()
                 pak = _read_env_key(pak_file, "CLICKUP_API_KEY")
             cache_suffix = ".clickup-cache.json"
             team_id_override = os.environ.get("CLICKUP_SPACE_ID")
@@ -107,7 +111,9 @@ class Config:
             pak = _read_env_key(_REPO_ENV_FILE, "LINEAR_API_KEY")
             pak_file = _REPO_ENV_FILE
             if not pak:
-                pak_file = Path(os.environ.get("LINEAR_PAK_FILE", str(DEFAULT_LINEAR_PAK_FILE))).expanduser()
+                pak_file = Path(
+                    os.environ.get("LINEAR_PAK_FILE", str(DEFAULT_LINEAR_PAK_FILE))
+                ).expanduser()
                 pak = _read_env_key(pak_file, "LINEAR_API_KEY")
             cache_suffix = ".linear-cache.json"
             team_id_override = os.environ.get("LINEAR_TEAM_ID")
@@ -165,7 +171,7 @@ def _read_env_key(path: Path, key_name: str) -> str | None:
             if not line or line.startswith("#"):
                 continue
             if line.startswith("export "):
-                line = line[len("export "):]
+                line = line[len("export ") :]
             if line.startswith(prefix):
                 value = line.split("=", 1)[1].strip().strip('"').strip("'")
                 return value or None

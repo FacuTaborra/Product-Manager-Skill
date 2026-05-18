@@ -49,10 +49,14 @@ def build_parser() -> argparse.ArgumentParser:
     p_projects.add_argument("--team-id", default=None, help="Filter by team ID.")
     p_projects.set_defaults(func=lists.run_list_projects)
 
-    p_create_project = sub.add_parser("create-project", help="Create a new project/list inside a team/space.")
+    p_create_project = sub.add_parser(
+        "create-project", help="Create a new project/list inside a team/space."
+    )
     _add_repo_arg(p_create_project)
     p_create_project.add_argument("name", help="Name of the new project.")
-    p_create_project.add_argument("--team-id", required=True, help="Team or Space ID where the project will be created.")
+    p_create_project.add_argument(
+        "--team-id", required=True, help="Team or Space ID where the project will be created."
+    )
     p_create_project.set_defaults(func=lists.run_create_project)
 
     p_create_team = sub.add_parser("create-team", help="Create a new team in the workspace.")
@@ -89,11 +93,18 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_update = sub.add_parser("update-issue", help="Update an existing issue.")
     _add_repo_arg(p_update)
-    p_update.add_argument("--id", required=True, help="Issue identifier (e.g. FAC-12 or ClickUp task ID).")
+    p_update.add_argument(
+        "--id", required=True, help="Issue identifier (e.g. FAC-12 or ClickUp task ID)."
+    )
     p_update.add_argument("--title", default=None)
     p_update.add_argument("--description", default=None)
     p_update.add_argument("--state", default=None, help="State name (e.g. 'In Progress').")
-    p_update.add_argument("--priority", type=int, default=None, help="0=No priority, 1=Urgent, 2=High, 3=Medium, 4=Low.")
+    p_update.add_argument(
+        "--priority",
+        type=int,
+        default=None,
+        help="0=No priority, 1=Urgent, 2=High, 3=Medium, 4=Low.",
+    )
     p_update.add_argument("--assignee", default=None, help="Email of the member to assign.")
     p_update.set_defaults(func=update_issue.run)
 

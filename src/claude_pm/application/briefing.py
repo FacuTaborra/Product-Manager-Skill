@@ -14,19 +14,23 @@ class BriefingService:
         self.context = context
 
     def generate_multi(self, *, projects: list[dict[str, str]], repo_name: str) -> dict[str, Any]:
-        excerpt = self.context.get_status_excerpt(repo_name) if self.context.is_available() else None
+        excerpt = (
+            self.context.get_status_excerpt(repo_name) if self.context.is_available() else None
+        )
         sections = []
         for proj in projects:
             issues = self.provider.list_open_issues(proj["id"])
             grouped: dict[str, list[Issue]] = {}
             for issue in issues:
                 grouped.setdefault(issue.state.name, []).append(issue)
-            sections.append({
-                "project": proj["name"],
-                "project_id": proj["id"],
-                "issues_by_state": grouped,
-                "total_open": len(issues),
-            })
+            sections.append(
+                {
+                    "project": proj["name"],
+                    "project_id": proj["id"],
+                    "issues_by_state": grouped,
+                    "total_open": len(issues),
+                }
+            )
         return {
             "repo": repo_name,
             "projects": sections,

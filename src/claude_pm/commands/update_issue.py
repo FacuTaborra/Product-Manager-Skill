@@ -39,11 +39,13 @@ def run(args: argparse.Namespace) -> int:
         assignee_id=assignee_id,
     )
     issue = provider.update_issue(update)
-    print_json({
-        "ok": True,
-        "identifier": issue.identifier,
-        "title": issue.title,
-        "state": issue.state.name,
-        "url": issue.url,
-    })
+    print_json(
+        {
+            "ok": True,
+            "identifier": issue.identifier,
+            "title": issue.title,
+            "state": issue.state.name,
+            "url": issue.url,
+        }
+    )
     return EXIT_OK

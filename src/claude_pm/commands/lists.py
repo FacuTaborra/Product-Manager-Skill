@@ -43,7 +43,13 @@ def run_list_projects(args: argparse.Namespace) -> int:
     provider = build_provider(config)
     team_id = getattr(args, "team_id", None)
     projects = provider.list_projects(team_id)
-    print_json({"projects": [{"id": p.id, "name": p.name, "state": p.state, "url": p.url} for p in projects]})
+    print_json(
+        {
+            "projects": [
+                {"id": p.id, "name": p.name, "state": p.state, "url": p.url} for p in projects
+            ]
+        }
+    )
     return EXIT_OK
 
 

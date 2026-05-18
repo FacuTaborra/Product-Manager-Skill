@@ -124,7 +124,7 @@ class ClickUpProvider:
         if not lists:
             return []
         data = self._get(f"list/{lists[0].id}")
-        statuses = (data.get("statuses") or [])
+        statuses = data.get("statuses") or []
         return [State(id=s["id"], name=s["status"]) for s in statuses]
 
     def list_labels(self, team_id: str) -> list[Label]:
@@ -196,8 +196,9 @@ class ClickUpProvider:
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _is_done(task: dict[str, Any]) -> bool:
-    status = (task.get("status") or {})
+    status = task.get("status") or {}
     return status.get("type", "").lower() in _DONE_TYPES
 
 

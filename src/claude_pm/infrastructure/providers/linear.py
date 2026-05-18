@@ -75,7 +75,9 @@ class LinearProvider:
                 team_ids = [t["id"] for t in (n.get("teams") or {}).get("nodes", [])]
                 if team_id not in team_ids:
                     continue
-            result.append(Project(id=n["id"], name=n["name"], state=n.get("state"), url=n.get("url")))
+            result.append(
+                Project(id=n["id"], name=n["name"], state=n.get("state"), url=n.get("url"))
+            )
         return result
 
     def find_projects(self, name_query: str) -> list[Project]:
