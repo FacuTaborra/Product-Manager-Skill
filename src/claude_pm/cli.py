@@ -8,7 +8,7 @@ import sys
 
 from . import __version__
 from ._stdio import force_utf8_stdio
-from .commands import briefing, create_issue, doctor, docs, lists, search, setup, update_issue
+from .commands import briefing, create_issue, docs, doctor, lists, search, setup, update_issue
 from .exceptions import EXIT_OK, NeedsChoice, PMError
 
 
