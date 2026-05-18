@@ -45,15 +45,13 @@ class TestGetJson:
 
     def test_401_raises_provider_error_immediately(self) -> None:
         client = _make_client()
-        with patch("urllib.request.urlopen", side_effect=_http_error(401)):
-            with pytest.raises(ProviderError, match="Authentication rejected"):
-                client.get_json("https://example.com/api")
+        with patch("urllib.request.urlopen", side_effect=_http_error(401)), pytest.raises(ProviderError, match="Authentication rejected"):
+            client.get_json("https://example.com/api")
 
     def test_403_raises_provider_error_immediately(self) -> None:
         client = _make_client()
-        with patch("urllib.request.urlopen", side_effect=_http_error(403)):
-            with pytest.raises(ProviderError, match="Authentication rejected"):
-                client.get_json("https://example.com/api")
+        with patch("urllib.request.urlopen", side_effect=_http_error(403)), pytest.raises(ProviderError, match="Authentication rejected"):
+            client.get_json("https://example.com/api")
 
     def test_500_retries_then_succeeds(self) -> None:
         client = _make_client()
@@ -69,26 +67,21 @@ class TestGetJson:
                 raise r
             return r
 
-        with patch("urllib.request.urlopen", side_effect=side_effect):
-            with patch("time.sleep"):
-                result = client.get_json("https://example.com/api")
+        with patch("urllib.request.urlopen", side_effect=side_effect), patch("time.sleep"):
+            result = client.get_json("https://example.com/api")
         assert result == {"ok": True}
         assert call_count == 2
 
     def test_500_twice_raises_provider_error(self) -> None:
         client = _make_client()
-        with patch("urllib.request.urlopen", side_effect=_http_error(500)):
-            with patch("time.sleep"):
-                with pytest.raises(ProviderError, match="HTTP 500"):
-                    client.get_json("https://example.com/api")
+        with patch("urllib.request.urlopen", side_effect=_http_error(500)), patch("time.sleep"), pytest.raises(ProviderError, match="HTTP 500"):
+            client.get_json("https://example.com/api")
 
     def test_url_error_retries_then_raises(self) -> None:
         client = _make_client()
         err = urllib.error.URLError("connection refused")
-        with patch("urllib.request.urlopen", side_effect=err):
-            with patch("time.sleep"):
-                with pytest.raises(ProviderError, match="Network error"):
-                    client.get_json("https://example.com/api")
+        with patch("urllib.request.urlopen", side_effect=err), patch("time.sleep"), pytest.raises(ProviderError, match="Network error"):
+            client.get_json("https://example.com/api")
 
 
 class TestPostJson:
@@ -104,6 +97,5 @@ class TestPostJson:
         resp.read.return_value = json.dumps([1, 2, 3]).encode()
         resp.__enter__ = lambda s: s
         resp.__exit__ = MagicMock(return_value=False)
-        with patch("urllib.request.urlopen", return_value=resp):
-            with pytest.raises(ProviderError, match="Unexpected response shape"):
-                client.post_json({"title": "Test"})
+        with patch("urllib.request.urlopen", return_value=resp), pytest.raises(ProviderError, match="Unexpected response shape"):
+            client.post_json({"title": "Test"})

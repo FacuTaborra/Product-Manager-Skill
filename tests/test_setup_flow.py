@@ -13,7 +13,6 @@ from src.claude_pm.domain.models import Project, State, Team
 from src.claude_pm.exceptions import NeedsChoice, PMError
 from src.claude_pm.infrastructure.cache import Cache, InMemoryCacheRepository
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

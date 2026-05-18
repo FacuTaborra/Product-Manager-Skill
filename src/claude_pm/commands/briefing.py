@@ -8,7 +8,14 @@ from ..application.briefing import BriefingService
 from ..application.setup_flow import SetupService
 from ..config import Config
 from ..exceptions import EXIT_OK, PMError
-from ._helpers import briefing_to_dict, build_context, build_provider, get_cache_repo, print_json
+from ._helpers import (
+    briefing_to_dict,
+    build_context,
+    build_provider,
+    get_cache_repo,
+    issue_to_dict,
+    print_json,
+)
 
 
 def run(args: argparse.Namespace) -> int:
@@ -25,6 +32,11 @@ def run(args: argparse.Namespace) -> int:
 
     if len(projects) > 1:
         result = service.generate_multi(projects=list(projects), repo_name=config.repo_name)
+        for section in result["projects"]:
+            section["issues_by_state"] = {
+                state: [issue_to_dict(i) for i in issues]
+                for state, issues in section["issues_by_state"].items()
+            }
         print_json(result)
     else:
         briefing = service.generate(
