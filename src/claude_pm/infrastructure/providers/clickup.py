@@ -11,6 +11,7 @@ Hierarchy mapping:
 from __future__ import annotations
 
 from typing import Any
+from urllib.parse import quote
 
 from ...domain.models import Doc, Issue, IssueDraft, IssueUpdate, Label, Project, State, Team, User
 from ...exceptions import ProviderError
@@ -139,19 +140,26 @@ class ClickUpProvider:
             return []
         data = self._get(f"list/{lists[0].id}")
         statuses = data.get("statuses") or []
-        return [State(id=s["id"], name=s["status"]) for s in statuses]
+        return [State(id=s["status"], name=s["status"]) for s in statuses]
 
     def list_labels(self, team_id: str) -> list[Label]:
         return []
 
     def resolve_user_by_email(self, email: str) -> User | None:
         workspace_id = self._workspace()
-        data = self._get(f"team/{workspace_id}/member")
-        members = data.get("members") or []
-        for m in members:
-            user = m.get("user") or {}
-            if user.get("email") == email:
-                return User(id=str(user["id"]), email=user["email"], name=user.get("username", ""))
+        data = self._get("team")
+        teams = data.get("teams") or []
+        for team in teams:
+            if team.get("id") != workspace_id:
+                continue
+            for m in team.get("members") or []:
+                user = m.get("user") or {}
+                if user.get("email") == email:
+                    return User(
+                        id=str(user["id"]),
+                        email=user["email"],
+                        name=user.get("username", ""),
+                    )
         return None
 
     def list_open_issues(self, project_id: str) -> list[Issue]:
@@ -161,9 +169,9 @@ class ClickUpProvider:
 
     def search_issues(self, query: str, *, project_id: str | None = None) -> list[Issue]:
         workspace_id = self._workspace()
-        path = f"team/{workspace_id}/task?query={query}"
+        path = f"team/{workspace_id}/task?query={quote(query, safe='')}"
         if project_id:
-            path += f"&list_ids[]={project_id}"
+            path += f"&list_ids[]={quote(project_id, safe='')}"
         data = self._get(path)
         tasks = data.get("tasks") or []
         return [_to_issue(t, with_project=True) for t in tasks]
@@ -270,7 +278,8 @@ def _to_issue(
     task: dict[str, Any], *, with_project: bool = False, with_description: bool = False
 ) -> Issue:
     status_node = task.get("status") or {}
-    state = State(id=status_node.get("id", ""), name=status_node.get("status", "Unknown"))
+    status_name = status_node.get("status", "Unknown")
+    state = State(id=status_name, name=status_name)
     project: Project | None = None
     if with_project:
         lst = task.get("list")
