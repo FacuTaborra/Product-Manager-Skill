@@ -260,6 +260,7 @@ class ClickUpProvider:
                 )
         return Doc(id=doc_id, title=doc_data.get("title", ""), url=doc_data.get("url"))
 
+
 def _is_done(task: dict[str, Any]) -> bool:
     status = task.get("status") or {}
     return status.get("type", "").lower() in _DONE_TYPES

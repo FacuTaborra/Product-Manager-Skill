@@ -112,7 +112,11 @@ class Config:
             vault_path = None
 
         cache_suffix = conf.cache_suffix
-        cache_path = (vault_path / "proyectos" / repo_name / cache_suffix) if vault_path else (FALLBACK_CACHE_ROOT / repo_name / cache_suffix)
+        cache_path = (
+            (vault_path / "proyectos" / repo_name / cache_suffix)
+            if vault_path
+            else (FALLBACK_CACHE_ROOT / repo_name / cache_suffix)
+        )
 
         return cls(
             pak_file=pak_file,
@@ -145,7 +149,7 @@ def _read_env_key(path: Path, key_name: str) -> str | None:
             if not line or line.startswith("#"):
                 continue
             if line.startswith("export "):
-                line = line[len("export "):]
+                line = line[len("export ") :]
             if line.startswith(prefix):
                 return line.split("=", 1)[1].strip().strip('"').strip("'") or None
     except OSError:
@@ -172,6 +176,7 @@ def _read_projects_file(repo_name: str) -> PmFileConfig:
         projects=projects,
         label=sec.get("label") or None,
     )
+
 
 def _parse_provider(value: str | None) -> ProviderType:
     try:
