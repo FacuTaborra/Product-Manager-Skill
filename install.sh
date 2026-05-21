@@ -40,30 +40,17 @@ else
 fi
 
 
-# Add pm.py permission to ~/.claude/settings.json so Claude never prompts for it
-SETTINGS_FILE="$CLAUDE_DIR/settings.json"
-PM_PERMISSION="Bash(python3 ~/.claude/skills/pm/pm.py *)"
-
+# Register required Claude Code permissions via the skill's own module
 python3 - <<PYEOF
-import json, os, sys
+import sys
+sys.path.insert(0, "$SKILL_DIR/src")
+from claude_pm.application.permissions import register_permissions
 
-settings_file = "$SETTINGS_FILE"
-permission = "$PM_PERMISSION"
-
-if not os.path.exists(settings_file):
-    data = {}
-else:
-    with open(settings_file) as f:
-        data = json.load(f)
-
-data.setdefault("permissions", {}).setdefault("allow", [])
-if permission not in data["permissions"]["allow"]:
-    data["permissions"]["allow"].append(permission)
-    with open(settings_file, "w") as f:
-        json.dump(data, f, indent=2)
-    print(f"  + added permission: {permission}")
-else:
-    print(f"  = permission already present: {permission}")
+added = register_permissions()
+for p in added:
+    print(f"  + added permission: {p}")
+if not added:
+    print("  = all permissions already present")
 PYEOF
 
 echo

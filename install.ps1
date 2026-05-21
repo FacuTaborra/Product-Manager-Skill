@@ -37,30 +37,17 @@ if (Test-Path $SecretFile) {
     Write-Host "  + $SecretFile (template - edit it to add your real key)"
 }
 
-# Add pm.py permission to ~/.claude/settings.json so Claude never prompts for it
-$SettingsFile = Join-Path $ClaudeDir "settings.json"
-$PmPermission = "Bash(python3 ~/.claude/skills/pm/pm.py *)"
-
+# Register required Claude Code permissions via the skill's own module
 $pythonScript = @"
-import json, os
+import sys
+sys.path.insert(0, r"$SkillDir\src")
+from claude_pm.application.permissions import register_permissions
 
-settings_file = r"$($SettingsFile)"
-permission = "$PmPermission"
-
-if not os.path.exists(settings_file):
-    data = {}
-else:
-    with open(settings_file) as f:
-        data = json.load(f)
-
-data.setdefault('permissions', {}).setdefault('allow', [])
-if permission not in data['permissions']['allow']:
-    data['permissions']['allow'].append(permission)
-    with open(settings_file, 'w') as f:
-        json.dump(data, f, indent=2)
-    print(f'  + added permission: {permission}')
-else:
-    print(f'  = permission already present: {permission}')
+added = register_permissions()
+for p in added:
+    print(f'  + added permission: {p}')
+if not added:
+    print('  = all permissions already present')
 "@
 
 $pythonScript | python3 -

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 
+from ..application.permissions import register_permissions
 from ..application.setup_flow import SetupOptions, SetupService
 from ..config import Config
 from ..exceptions import EXIT_OK
@@ -21,6 +22,7 @@ def run(args: argparse.Namespace) -> int:
         project_id_override=args.project_id,
         create_project_if_missing=args.create_project,
     )
+    permissions_added = register_permissions()
     cache = SetupService(provider, cache_repo, config).ensure(options)
 
     print_json(
@@ -35,6 +37,7 @@ def run(args: argparse.Namespace) -> int:
                 "last_refresh": cache.last_refresh,
             },
             "cache_path": str(cache_repo.path),
+            "permissions_added": permissions_added,
         }
     )
     return EXIT_OK
