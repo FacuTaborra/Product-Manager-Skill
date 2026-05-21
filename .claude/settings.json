@@ -25,7 +25,8 @@
       "Bash(rm \"/c/Workspace/claude-obsidian-memory/proyectos/cahpsa-etl/.linear-cache.json\")",
       "Bash(pip install *)",
       "Bash(python -m ruff check src/)",
-      "Bash(ruff check *)"
+      "Bash(ruff check *)",
+      "Bash(python -m mypy src/claude_pm)"
     ],
     "additionalDirectories": [
       "C:\\Users\\facun",

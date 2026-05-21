@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 
 def _home_as_permission_path() -> str:
@@ -35,7 +36,7 @@ def register_permissions() -> list[str]:
     settings_path = Path.home() / ".claude" / "settings.json"
 
     try:
-        settings: dict = json.loads(settings_path.read_text(encoding="utf-8"))
+        settings: dict[str, Any] = json.loads(settings_path.read_text(encoding="utf-8"))
     except (FileNotFoundError, json.JSONDecodeError):
         settings = {}
 
